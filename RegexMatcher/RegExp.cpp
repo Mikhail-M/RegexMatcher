@@ -3,7 +3,7 @@
 #include <iostream>
 
 
-RegExp::RegExp(std::string regExp) : reg(regExp), makedAutomata(false)
+RegExp::RegExp(std::string regExp) : reg(regExp), makedAutomata(false), postfix("")
 {
 }
 
@@ -37,6 +37,7 @@ void RegExp::makeAutomata() {
 
 
 void RegExp::makePostfix() {
+	
 	postfix = toPostfix(reg, priority);
 }
 
@@ -63,15 +64,16 @@ std::string RegExp::toPostfix(std::string s, int(*priority)(char t)) {
 				return answer;
 			}
 		}
-		else while (!st.empty()) {
-			char lst = st.top();
-			if (priority(lst) >= priority(c))
-			{
-				answer.push_back(lst);
-				st.pop();
-			}
-			else {
-				break;
+		else {
+			while (!st.empty()){
+				char lst = st.top();
+				if (priority(lst) >= priority(c)){
+					answer.push_back(lst);
+					st.pop();
+				}
+				else {
+					break;
+				}
 			}
 			st.push(c);
 		}
