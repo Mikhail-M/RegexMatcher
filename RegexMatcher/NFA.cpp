@@ -1,6 +1,8 @@
 #include "NFA.h"
 const char eps = 0;
 #include <stack>
+#include <map>
+#include <iostream>
 
 
 NFA::NFA()
@@ -14,12 +16,14 @@ NFA::~NFA()
 
 
 state NFA::buildInit() {
+	nodes.push_back(std::vector<Link>());
 	return nodes.size() - 1;
 }
 
 piece NFA::buildSymbol(char c) {
 	
     int start = buildInit(), end = buildInit();
+	
     nodes[start].push_back(Link(end, c));
     return piece(start, end);
 }
@@ -71,11 +75,11 @@ T Pop(std::stack<T> &s){
 	return temp;
 }
 void NFA::build(std::string postfix) {
-	start = 0;
-	buildInit();
+	start = buildInit();
+
 	std::stack<piece> st;
 	for (auto& c : postfix){
-		if (c == '?'){
+		if (c == '?') {
 			st.push(buildZeroOrOne(Pop<piece>(st)));
 		}
 		else if (c == '*') {
@@ -103,3 +107,48 @@ void NFA::build(std::string postfix) {
 		st.pop();
 	}
 }
+
+//from node by link into set of nodes
+std::vector<state> NFA::justMove(std::vector <state> &states, char c) {
+	std::vector<state> ans;
+
+	for (auto& n : states)
+		for (auto& link : nodes[n])
+			if (link.c == c) {
+				ans.push_back(link.to);
+			}
+
+	return ans;
+}
+
+//use axiom of choice
+std::vector <state> NFA::withoutEpsilons(std::vector <state> &states) {
+	std::vector<state> ans;
+	std::map<state, bool> was;
+	std::stack<state> st;
+
+	for (auto& n : states) {
+		ans.push_back(n);
+		was[n] = true;
+		st.push(n);
+	}
+	while (!st.empty()) {
+		state cur = Pop(st);
+		was[cur] = true;
+		for (auto& n : nodes[cur]) {
+			if (n.c == eps && was.find(n.to) == was.end()){
+				st.push(n.to);
+				ans.push_back(n.to);
+
+			}
+		}
+
+		return ans;
+	}
+}
+
+std::vector <state> NFA::move(std::vector <state> &states, char c) {
+	std::vector<state> res = justMove(states, c);
+	return withoutEpsilons(res);
+}
+

@@ -18,17 +18,18 @@ public:
 		Link(int _to, char _c) : to(_to), c(_c)
 		{}
 	};
+	std::vector <state> move(std::vector <state> &states, char c);
 
 	std::vector<std::vector <Link> > nodes;
-
 	state start;
 	state end;
 	
 protected: 
-	
+	std::vector <state> justMove(std::vector <state> &states, char c);
+	std::vector <state> withoutEpsilons(std::vector <state> &states);
+
 	piece buildOr(piece a, piece b);
 	piece buildConcat(piece a, piece b);
-	piece buildOr(piece a, piece b);
 	piece buildSymbol(char c);
 	piece buildZeroOrMore(piece a);
 	piece buildOneOrMore(piece a);
