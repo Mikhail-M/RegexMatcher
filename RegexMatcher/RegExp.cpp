@@ -3,7 +3,7 @@
 #include <iostream>
 
 
-RegExp::RegExp(std::string regExp) : reg(regExp)
+RegExp::RegExp(std::string regExp) : reg(regExp), makedAutomata(false)
 {
 }
 
@@ -21,10 +21,20 @@ int priority(char c) {
 	else if (c == '|') {
 		return 2;
 	}
-	else if (c == '*' || c == '+' || c == '?')
+	else if (c == '.')
 		return 3;
+	else if (c == '*' || c == '+' || c == '?')
+		return 4;
 	else return 42;
 }
+
+void RegExp::makeAutomata() {
+	makedAutomata = true;
+
+
+
+}
+
 
 void RegExp::makePostfix() {
 	postfix = toPostfix(reg, priority);
