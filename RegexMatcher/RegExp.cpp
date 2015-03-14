@@ -12,6 +12,12 @@ RegExp::~RegExp()
 {
 }
 
+bool RegExp::match(std::string s) {
+	if (!makedAutomata)
+		makeAutomata();
+	return dfa.match(s);
+}
+
 //приоритет операций
 //todo: избавиться от магических констант
 int priority(char c) {
@@ -30,15 +36,21 @@ int priority(char c) {
 
 void RegExp::makeAutomata() {
 	makedAutomata = true;
+	makePostfix();
 
+	NFA nfa;
 
+	nfa.build(postfix);
+	
+
+	dfa.build(nfa);
 
 }
-
 
 void RegExp::makePostfix() {
 	
 	postfix = toPostfix(reg, priority);
+	
 }
 
 

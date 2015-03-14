@@ -2,6 +2,9 @@
 
 #include <string>
 
+#include "NFA.h"
+#include "DFA.h"
+
 class RegExp
 {
 public:
@@ -9,15 +12,16 @@ public:
 	~RegExp();
 	//if s is matched return true
 	bool match(std::string s);
-
-protected: 
-	std::string reg;
 	void makeAutomata();
+
+protected:
+	std::string reg;
 	void makePostfix();
 	bool makedAutomata;
 	std::string postfix;
+	DFA dfa;
+
 private: 
 	std::string toPostfix(std::string s, int (*priority)(char t) );
-
 };
 

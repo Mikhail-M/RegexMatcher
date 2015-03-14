@@ -4,7 +4,7 @@
 
 //this is abstraction for finite path from a to b
 typedef std::pair<int, int> piece;
-typedef int state;
+#define state int
 class NFA
 {
 public:
@@ -19,14 +19,14 @@ public:
 		{}
 	};
 	std::vector <state> move(std::vector <state> &states, char c);
+	std::vector <state> moveWithoutEpsilons(std::vector <state> &states);
 
 	std::vector<std::vector <Link> > nodes;
-	state start;
-	state end;
+	state startState;
+	state finalState;
 	
 protected: 
 	std::vector <state> justMove(std::vector <state> &states, char c);
-	std::vector <state> withoutEpsilons(std::vector <state> &states);
 
 	piece buildOr(piece a, piece b);
 	piece buildConcat(piece a, piece b);

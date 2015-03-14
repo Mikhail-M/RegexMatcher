@@ -15,6 +15,7 @@ NFA::~NFA()
 }
 
 
+
 state NFA::buildInit() {
 	nodes.push_back(std::vector<Link>());
 	return nodes.size() - 1;
@@ -75,7 +76,7 @@ T Pop(std::stack<T> &s){
 	return temp;
 }
 void NFA::build(std::string postfix) {
-	start = buildInit();
+	startState = buildInit();
 
 	std::stack<piece> st;
 	for (auto& c : postfix){
@@ -102,8 +103,8 @@ void NFA::build(std::string postfix) {
 		return;
 	}
 	while (!st.empty()){
-		start = st.top().first;
-		end = st.top().second;
+		startState = st.top().first;
+		finalState = st.top().second;
 		st.pop();
 	}
 }
@@ -111,6 +112,7 @@ void NFA::build(std::string postfix) {
 //from node by link into set of nodes
 std::vector<state> NFA::justMove(std::vector <state> &states, char c) {
 	std::vector<state> ans;
+	
 
 	for (auto& n : states)
 		for (auto& link : nodes[n])
@@ -122,7 +124,7 @@ std::vector<state> NFA::justMove(std::vector <state> &states, char c) {
 }
 
 //use axiom of choice
-std::vector <state> NFA::withoutEpsilons(std::vector <state> &states) {
+std::vector <state> NFA::moveWithoutEpsilons(std::vector <state> &states) {
 	std::vector<state> ans;
 	std::map<state, bool> was;
 	std::stack<state> st;
@@ -148,7 +150,8 @@ std::vector <state> NFA::withoutEpsilons(std::vector <state> &states) {
 }
 
 std::vector <state> NFA::move(std::vector <state> &states, char c) {
+
 	std::vector<state> res = justMove(states, c);
-	return withoutEpsilons(res);
+	return moveWithoutEpsilons(res);
 }
 
