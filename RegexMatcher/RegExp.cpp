@@ -29,9 +29,11 @@ int priority(char c) {
 	}
 	else if (c == '.')
 		return 3;
-	else if (c == '*' || c == '+' || c == '?')
+	else 
+		if (c == '*' || c == '+' || c == '?')
 		return 4;
-	else return 42;
+	else 
+		return 42;
 }
 
 void RegExp::makeAutomata() {
@@ -41,8 +43,6 @@ void RegExp::makeAutomata() {
 	NFA nfa;
 
 	nfa.build(postfix);
-	
-
 	dfa.build(nfa);
 
 }
@@ -71,7 +71,7 @@ std::string RegExp::toPostfix(std::string s, int(*priority)(char t)) {
 				st.pop();
 			else
 			{
-				//впилим сюда exception
+				//впилим сюда exception или нет
 				std::cout << "Kakoi-to kosyak" << std::endl;
 				return answer;
 			}

@@ -14,6 +14,7 @@ public:
 	~DFA();
 	void build(NFA &a);
 	bool match(std::string s);
+
 private:
 	
 	class StateDFA {

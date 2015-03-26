@@ -16,62 +16,72 @@ NFA::~NFA()
 
 
 
-state NFA::buildInit() {
-	nodes.push_back(std::vector<Link>());
-	return nodes.size() - 1;
+int NFA::buildInit() {
+    int newNumber = 0;
+	if (renumbering.empty()){
+		states.push_back(std::vector<Link>());
+		newNumber = states.size() - 1;
+	}
+	else {
+		newNumber = renumbering.top();
+		renumbering.pop();
+	}
+
+	return newNumber;
+}
+
+piece NFA::buildEpsilon() {
+
+	int start = buildInit(), end = buildInit();
+	states[start].push_back(Link(end, eps));
+
+	return piece(start, end);
 }
 
 piece NFA::buildSymbol(char c) {
 	
     int start = buildInit(), end = buildInit();
-	
-    nodes[start].push_back(Link(end, c));
+    states[start].push_back(Link(end, c));
+
     return piece(start, end);
 }
 
+piece NFA::buildKleene—losure(piece a) {
 
-piece NFA::buildOneOrMore(piece a) {
-	int startTemp = a.first, endTemp = a.second;
-	int start = buildInit(), end = buildInit();
-	nodes[endTemp].push_back(Link(startTemp, eps));
-	nodes[start].push_back(Link(startTemp, eps));
-	nodes[endTemp].push_back(Link(end, eps));
-	return piece(start, end);
-}
+    int start = buildInit(), end = buildInit();
+	states[start].push_back(Link(a.first, eps));
+	states[start].push_back(Link(end, eps));
+	states[a.second].push_back(Link(a.first, eps));
+	states[a.second].push_back(Link(end, eps));
 
-piece NFA::buildZeroOrMore(piece a) {
-	piece b = buildOneOrMore(a);
-	nodes[b.first].push_back(Link(b.second, eps));
-	return b;
-}
-
-piece NFA::buildZeroOrOne(piece a) {
-	int start = a.first, end = a.second;
-	nodes[start].push_back(Link(end, eps));
 	return piece(start, end);
 }
 
 piece NFA::buildOr(piece a, piece b) {
-    int a_start = a.first, a_end = a.second;
-    int b_start = b.first, b_end = b.second;
+    
 	int start = buildInit(), end = buildInit();
-	nodes[start].push_back(Link(a_start, eps));
-	nodes[start].push_back(Link(b_start, eps));
-	nodes[b_end].push_back(Link(end, eps));
-	nodes[a_end].push_back(Link(end, eps));
+	states[start].push_back(Link(a.first, eps));
+	states[start].push_back(Link(b.first, eps));
+	states[b.second].push_back(Link(end, eps));
+	states[a.second].push_back(Link(end, eps));
 
 	return piece(start, end);
 }
 
 piece NFA::buildConcat(piece a, piece b) {
-	int a_start = a.first, a_end = a.second;
-	int b_start = b.first, b_end = b.second;
-	nodes[a_end].push_back(Link(b_start, eps));
-	return piece(a_start, b_end);
+	unsigned int n2_s = a.first, n2_e = a.second;
+	unsigned int n1_s = b.first, n1_e = b.second;
+	
+	for (auto& link : states[b.first]){
+		states[a.second].push_back(link);
+	}
+	states[b.first].clear();
+	renumbering.push(b.first);
+
+	return piece(a.first, b.second);
 }
-template<typename T>
-T Pop(std::stack<T> &s){
-	T temp = s.top();
+piece pop(std::stack<piece> &s){
+	piece temp = s.top();
 	s.pop();
 	return temp;
 }
@@ -80,20 +90,18 @@ void NFA::build(std::string postfix) {
 
 	std::stack<piece> st;
 	for (auto& c : postfix){
-		if (c == '?') {
-			st.push(buildZeroOrOne(Pop<piece>(st)));
-		}
-		else if (c == '*') {
-			st.push(buildZeroOrMore(Pop<piece>(st)));
-		}
-		else if (c == '+') {
-			st.push(buildOneOrMore(Pop<piece>(st)));
+		
+	    if (c == '*') {
+			st.push(buildKleene—losure(pop(st)));
 		}
 		else if (c == '.') {
-			st.push(buildConcat(Pop<piece>(st), Pop<piece>(st)));
+			st.push(buildConcat(pop(st), pop(st)));
 		}
 		else if (c == '|') {
-			st.push(buildOr(Pop<piece>(st), Pop<piece>(st)));
+			st.push(buildOr(pop(st), pop(st)));
+		}
+		else if (c == '@') {
+			st.push(buildEpsilon());
 		}
 		else {
 			st.push(buildSymbol(c));
@@ -109,13 +117,13 @@ void NFA::build(std::string postfix) {
 	}
 }
 
-//from node by link into set of nodes
-std::vector<state> NFA::justMove(std::vector <state> &states, char c) {
+
+//from node by link into set of states
+std::vector<state> NFA::justMove(std::vector <state> &fromStates, char c) {
 	std::vector<state> ans;
 	
-
-	for (auto& n : states)
-		for (auto& link : nodes[n])
+	for (auto& n : fromStates)
+		for (auto& link : states[n])
 			if (link.c == c) {
 				ans.push_back(link.to);
 			}
@@ -124,34 +132,35 @@ std::vector<state> NFA::justMove(std::vector <state> &states, char c) {
 }
 
 //use axiom of choice
-std::vector <state> NFA::moveWithoutEpsilons(std::vector <state> &states) {
+std::vector <state> NFA::moveWithoutEpsilons(std::vector <state> &fromStates) {
 	std::vector<state> ans;
-	std::map<state, bool> was;
 	std::stack<state> st;
+	std::map<state, bool> cache;
 
-	for (auto& n : states) {
+	for (auto& n : fromStates) {
 		ans.push_back(n);
-		was[n] = true;
 		st.push(n);
+		cache[n] = true;
 	}
 	while (!st.empty()) {
-		state cur = Pop(st);
-		was[cur] = true;
-		for (auto& n : nodes[cur]) {
-			if (n.c == eps && was.find(n.to) == was.end()){
+		state cur = st.top();
+		st.pop();
+		cache[cur] = true;
+		for (auto& n : states[cur]){
+			if (!n.c && cache.find(n.to) == cache.end()){
 				st.push(n.to);
 				ans.push_back(n.to);
-
 			}
 		}
-
-		return ans;
 	}
+
+	return ans;
 }
 
-std::vector <state> NFA::move(std::vector <state> &states, char c) {
+std::vector <state> NFA::move(std::vector <state> &fromStates, char c) {
 
-	std::vector<state> res = justMove(states, c);
+	std::vector<state> res = justMove(fromStates, c);
 	return moveWithoutEpsilons(res);
+
 }
 

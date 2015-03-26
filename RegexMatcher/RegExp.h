@@ -13,12 +13,12 @@ public:
 	//if s is matched return true
 	bool match(std::string s);
 	void makeAutomata();
+	std::string postfix;
 
 protected:
 	std::string reg;
 	void makePostfix();
 	bool makedAutomata;
-	std::string postfix;
 	DFA dfa;
 
 private: 
