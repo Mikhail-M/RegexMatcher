@@ -46,8 +46,8 @@ private:
 	std::vector<StateDFA> states;
 	void dfs(state start, std::vector<bool> &used);
 	void buildTransition();
-
-
+	bool isExistDevilState();
+	bool existDevilState;
 
 	std::map<int, std::map<char, int>> transition;
 	vector< vector<bool> > buildTable(int n, vector<bool> isTerminal, map<int, map<char, set<int> > > reverseTransition);

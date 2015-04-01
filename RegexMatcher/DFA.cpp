@@ -6,7 +6,7 @@
 #include <fstream>
 
 using namespace std;
-DFA::DFA() : startState(0)
+DFA::DFA() : startState(0), existDevilState(false)
 {
 }
 
@@ -51,19 +51,41 @@ void DFA::dot(std::ostream& output) {
 	output << "digraph DFA {\n\trankdir=LR;\n";
 	output << "\tnode [shape = none] [width = 0] [fixedsize = true]; \"\";\n";
 	output << "\tnode [shape = doublecircle] [fixedsize = false];";
-	for (int i = 0; i < states.size(); i++) {
-		if (states[i].isFinalState())
-			output << " \"" << i << "\"";
-	}
-	
-	output << ";\n\tnode [shape = circle];\n";
-	output << "\t\"\" -> \"" << startState << "\";\n";
-	for (const auto& a : transition) {
-		for (const auto& b : a.second) {
-			output << "\t\"" << a.first << "\" -> \"" << b.second << "\" "
-				"[label = \"" << b.first << "\"];\n";
+	if (!isExistDevilState()) {
+		for (int i = 0; i < states.size()-1; i++) {
+			if (states[i].isFinalState())
+				output << " \"" << i << "\"";
+		}
+
+		output << ";\n\tnode [shape = circle];\n";
+		output << "\t\"\" -> \"" << startState << "\";\n";
+		for (const auto& a : transition) {
+			for (const auto& b : a.second) {
+				output << "\t\"" << a.first << "\" -> \"" << b.second << "\" "
+					"[label = \"" << b.first << "\"];\n";
+			}
 		}
 	}
+	else { 
+		for (int i = 0; i < states.size(); i++) {
+			if (states[i].isFinalState())
+				output << " \"" << i << "\"";
+		}
+
+		output << ";\n\tnode [shape = circle];\n";
+		output << "\t\"\" -> \"" << startState << "\";\n";
+		for (const auto& a : transition) {
+			for (const auto& b : a.second) {
+				if (b.second != states.size() - 1)
+				output << "\t\"" << a.first << "\" -> \"" << b.second << "\" "
+					"[label = \"" << b.first << "\"];\n";
+			}
+		}
+	
+	}
+
+
+
 	output << "}\n" << std::flush;
 }
 
@@ -104,6 +126,9 @@ void DFA::buildDFA(vector<int> &component, vector<bool> isTerminal) {
 	startState = component[startState];
 }
 
+bool DFA::isExistDevilState() {
+	return existDevilState;
+}
 
 void DFA::minimize() {
 	int n = states.size() + 1;
@@ -114,7 +139,7 @@ void DFA::minimize() {
 		for (char c = 'a'; c <= 'z'; c++)
 			if (states[i].transition.find(c) == states[i].transition.end())
 				states[i].addLink(n - 1, c);
-	
+	existDevilState = true;
 
 	vector <bool> isTerminal(n);
 	for (int i = 0; i < n; i++)
