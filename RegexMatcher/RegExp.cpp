@@ -45,8 +45,10 @@ void RegExp::makeAutomata() {
 
 	nfa.build(postfix);
 	dfa.build(nfa);
+	//dfa.dot(cout);
 
 	dfa.minimize();
+	dfa.dot(cout);
 }
 
 void RegExp::makePostfix() {

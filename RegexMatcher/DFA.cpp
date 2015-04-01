@@ -108,12 +108,14 @@ void DFA::buildDFA(vector<int> &component, vector<bool> isTerminal) {
 void DFA::minimize() {
 	int n = states.size() + 1;
 	StateDFA devil;
-	
+	states.push_back(devil);
+
 	for (int i = 0; i < states.size(); i++)
 		for (char c = 'a'; c <= 'z'; c++)
 			if (states[i].transition.find(c) == states[i].transition.end())
 				states[i].addLink(n - 1, c);
-	states.push_back(devil);
+	
+
 	vector <bool> isTerminal(n);
 	for (int i = 0; i < n; i++)
 		isTerminal[i] = states[i].isFinalState();
@@ -141,7 +143,7 @@ void DFA::minimize() {
 			component[i] = 0;
 
 	int componentsCount = 0;
-	for (int i = 1; i < n; i++) {
+	for (int i = 0; i < n; i++) {
 		if (!StartAttainability[i])
 			continue;
 		if (component[i] == -1){
@@ -217,9 +219,9 @@ DFA::StateDFA::StateDFA(vector<state> _states, state final) : finalState(false) 
 //Tompson algorithm
 void DFA::build(NFA &a) {
 
-	vector<state> first_node = {a.startState};
+	vector<state> first_node = {a.getStartState()};
 
-	states.push_back(StateDFA(a.moveWithoutEpsilons(first_node), a.finalState));
+	states.push_back(StateDFA(a.moveWithoutEpsilons(first_node), a.getFinalState()));
 
 	stack<state> st;
 	st.push(startState);
@@ -234,7 +236,7 @@ void DFA::build(NFA &a) {
 			vector<int> temp_ids = a.move(states[current].states, c);
 			if (temp_ids.size())
 			{
-				StateDFA temp(temp_ids, a.finalState);
+				StateDFA temp(temp_ids, a.getFinalState());
 
 				int pos = -1;
 				for (size_t i = 0; i < states.size(); i++)

@@ -23,11 +23,13 @@ public:
 
 	std::vector <state> move(std::vector <state> &fromStates, char c);
 	std::vector <state> moveWithoutEpsilons(std::vector <state> &fromStates);
+	state getStartState() {
+		return startState;
+	}
+	state getFinalState() {
+		return finalState;
+	}
 
-	std::vector<std::vector <Link> > states;
-	state startState;
-	state finalState;
-	
 protected: 
 	std::vector <state> justMove(std::vector <state> &fromStates, char c);
 	std::stack<int> renumbering;
@@ -38,6 +40,10 @@ protected:
 	state buildInit();
 	piece buildEpsilon();
 
+private:
+	std::vector<std::vector <Link> > states;
+	state startState;
+	state finalState;
 
 
 };

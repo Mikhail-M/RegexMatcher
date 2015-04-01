@@ -142,6 +142,7 @@ std::vector <state> NFA::moveWithoutEpsilons(std::vector <state> &fromStates) {
 		st.push(n);
 		cache[n] = true;
 	}
+
 	while (!st.empty()) {
 		state cur = st.top();
 		st.pop();

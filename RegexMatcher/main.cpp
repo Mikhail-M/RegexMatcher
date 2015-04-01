@@ -35,9 +35,9 @@ int main() {
 		in >> test;
 
 		if (matcher.match(test))
-			out << "YES" << endl;
+			cout << "YES" << endl;
 		else 
-			out << "NO" << endl;	
+			cout << "NO" << endl;	
 	}
 
 
