@@ -1,6 +1,7 @@
 #include "RegExp.h"
 #include <stack>
 #include <iostream>
+#include <fstream>
 
 
 RegExp::RegExp(std::string regExp) : reg(regExp), makedAutomata(false), postfix("")
@@ -45,6 +46,7 @@ void RegExp::makeAutomata() {
 	nfa.build(postfix);
 	dfa.build(nfa);
 
+	dfa.minimize();
 }
 
 void RegExp::makePostfix() {
