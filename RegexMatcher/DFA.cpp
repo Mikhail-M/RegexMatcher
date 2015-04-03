@@ -52,7 +52,7 @@ void DFA::dot(std::ostream& output) {
 	output << "\tnode [shape = none] [width = 0] [fixedsize = true]; \"\";\n";
 	output << "\tnode [shape = doublecircle] [fixedsize = false];";
 	if (!isExistDevilState()) {
-		for (int i = 0; i < states.size()-1; i++) {
+		for (int i = 0; i < states.size(); i++) {
 			if (states[i].isFinalState())
 				output << " \"" << i << "\"";
 		}
@@ -67,7 +67,7 @@ void DFA::dot(std::ostream& output) {
 		}
 	}
 	else { 
-		for (int i = 0; i < states.size(); i++) {
+		for (int i = 0; i < states.size() - 1; i++) {
 			if (states[i].isFinalState())
 				output << " \"" << i << "\"";
 		}
@@ -223,9 +223,10 @@ bool DFA::match(string s) {
 }
 
 bool DFA::StateDFA::isEqual(StateDFA &a){
-
+	
 	if (states.size() != a.states.size()) 
 		return false; 
+	
 	for (size_t i = 0; i < states.size(); i++) {
 		if (states[i] != a.states[i])
 			return false;
@@ -237,8 +238,9 @@ DFA::StateDFA::StateDFA(vector<state> _states, state final) : finalState(false) 
 	states = _states;
 	sort(states.begin(), states.end());
 	
-	for (auto &n : states) 
-		finalState = (n == final ? true: false);
+	for (auto &n : states)
+		if (n == final)
+			finalState = true;
 }
 
 //Tompson algorithm
@@ -259,17 +261,15 @@ void DFA::build(NFA &a) {
 		for (char c = 'a'; c <= 'z'; c++) {
 			
 			vector<int> temp_ids = a.move(states[current].states, c);
+			StateDFA temp(temp_ids, a.getFinalState());
+
 			if (temp_ids.size())
 			{
-				StateDFA temp(temp_ids, a.getFinalState());
-
 				int pos = -1;
 				for (size_t i = 0; i < states.size(); i++)
 					if (states[i].isEqual(temp)) {
-						pos = i;
-						break;
+					pos = i;
 					}
-
 				if (pos == -1) {
 					states.push_back(temp);
 					st.push(states.size() - 1);
